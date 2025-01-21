@@ -89,12 +89,14 @@ public class acceso extends HttpServlet {
                 }
                 if (operacion.equals("pin_web")) {
                     //System.out.println("BugBounty " + line2);
+                    System.out.println("numero -> "+numero);
                     if (entrar.registroCompleto(numero)) {
                         respuesta.put("success", false);
                         respuesta.put("code", 1);
                         out.println(respuesta);
                     } else {
                         boolean resultado = entrar.generarPIN(numero);
+                        System.out.println("resultado -> "+ resultado);
                         if (resultado) {
                             entrar.insertarIntento(numero, 1);
                             out.println(respuesta.put("success", true));
@@ -483,7 +485,7 @@ public class acceso extends HttpServlet {
                         respuesta.put("mensaje", "Debe de enviar los siguientes datos: servicio y pass.");
                         out.print(respuesta);
                     }
-                } else if (operacion.equals("actualizacion")) {
+                } else if (operacion.equals("actualizacion")){
                     if (json.has("access")) {
                         String token = json.getString("access");
                         int idUsuario = entrar.validarAcceso(token);
@@ -516,7 +518,7 @@ public class acceso extends HttpServlet {
                         out.println(respuesta);
                     }
 
-                } else if (operacion.equals("actualizacionv2")) {
+                } else if (operacion.equals("actualizacionv2")){
                     if (json.has("access")) {
                         String token = json.getString("access");
                         int idUsuario = entrar.validarAcceso(token);

@@ -58,139 +58,111 @@ public class accesoMifi extends HttpServlet {
             if (json != null) {
                 String operacion = json.getString("operacion");
                 String numero = null;
-                if (json.has("numero")) {
+                if (json.has("numero") && !json.isNull("numero")) {
                     numero = json.getString("numero");
                 }
-                if (operacion.equals("pin")) {
-                    if (json.has("numero") && json.has("email") && json.has("servicio")) {
-                        if (entrar.existeServicio(json.getString("servicio"), 3)) {
-                            respuesta.put("success", false);
-                            respuesta.put("code", 1);
-                            out.println(respuesta);
-                        } else {
-                            JSONObject resultado = entrar.generarPINHBB(json.getString("servicio"), numero, json.getString("email"), 3, "registro");
-                            if (resultado.getBoolean("success")) {
-                                out.println(respuesta.put("success", true));
-                            } else {
-                                respuesta.put("success", false);
-                                respuesta.put("code", 1);
-                                out.println(respuesta);
-                            }
-                        }
-                    } else {
-                        respuesta.put("success", false);
-                        respuesta.put("mensaje", "La petición debe contener numero, email y servicio.");
-                        out.println(respuesta);
-                    }
-                } else if (operacion.equals("pinv2")) {
-                    if (json.has("numero") && json.has("email") && json.has("servicio")) {
-                        String servicio = json.getString("servicio");
-                        if (numero.length() == 10 && servicio.length() == 10) {
-                            if (entrar.existeServicio(servicio, 3)) {
+                    if (operacion.equals("pin")) {
+                        if (json.has("numero") && json.has("email") && json.has("servicio")) {
+                            if (entrar.existeServicio(json.getString("servicio"), 3)) {
                                 respuesta.put("success", false);
                                 respuesta.put("code", 1);
                                 out.println(respuesta);
                             } else {
-                                JSONObject resultado = entrar.generarPINHBBRestringido(servicio, numero, json.getString("email"), 3, "registro");
+                                JSONObject resultado = entrar.generarPINHBB(json.getString("servicio"), numero, json.getString("email"), 3, "registro");
                                 if (resultado.getBoolean("success")) {
                                     out.println(respuesta.put("success", true));
                                 } else {
-                                    respuesta = resultado;
+                                    respuesta.put("success", false);
                                     respuesta.put("code", 1);
                                     out.println(respuesta);
                                 }
                             }
                         } else {
                             respuesta.put("success", false);
-                            respuesta.put("mensaje", "El número celular o el número de servicio no son validos.");
+                            respuesta.put("mensaje", "La petición debe contener numero, email y servicio.");
                             out.println(respuesta);
                         }
-                    } else {
-                        respuesta.put("success", false);
-                        respuesta.put("mensaje", "La petición debe contener numero, email y servicio.");
-                        out.println(respuesta);
-                    }
-                } else if (operacion.equals("validar_pin")) {
-                    if (json.has("numero") && json.has("pin")) {
-                        if (numero.length() == 10 && json.getString("pin").length() == 4) {
-                            int idUsuario = entrar.getIdUsuarioServicio(numero, 3);
-                           // System.out.println("idusuario -> " + idUsuario);
-                            JSONObject obj = entrar.getValidacionPin(idUsuario, json.getString("pin"));
-                            respuesta = obj;
-                            out.println(respuesta);
-                        } else {
-                            respuesta.put("success", false);
-                            respuesta.put("mensaje", "Longitudes no validas");
-                            out.println(respuesta);
-                        }
-                    } else {
-                        respuesta.put("success", false);
-                        respuesta.put("mensaje", "Lo sentimos, su petición no cumple con los requerimientos.");
-                        out.println(respuesta);
-                    }
-                } else if (operacion.equals("login")) {
-                    if (json.has("servicio") && json.has("pass")) {
-                        out.print(entrar.loginHBB(json.getString("servicio"), json.getString("pass"), 3));
-                    } else {
-                        respuesta.put("success", false);
-                        respuesta.put("mensaje", "La petición debe contener servicio y pass.");
-                        out.println(respuesta);
-                    }
-                } else if (operacion.equals("registro_datos")) {
-                    if (json.has("numero") && json.has("servicio") && json.has("pass") && json.has("permiso") && json.has("foto") && json.has("nombre")) {
-                        out.println(entrar.insertarInformacionHBB(json.getString("numero"), json.getString("nombre"), json.getString("servicio"), json.getInt("permiso"), json.getString("pass"), json.getString("foto"), 3));
-                    } else {
-                        respuesta.put("success", false);
-                        respuesta.put("mensaje", "Debe de enviar los siguientes datos: numero, servicio, nombre, pass, foto (base64) y permiso.");
-                        out.print(respuesta);
-                    }
-                } else if (operacion.equals("registro_datosv2")) {
-                    if (json.has("numero") && json.has("servicio") && json.has("pass") && json.has("permiso") && json.has("foto") && json.has("nombre")) {
-                        String servicio = json.getString("servicio");
-                        String foto = json.getString("foto");
-                        if (json.has("uuid")) {
-                            String uuid = json.getString("uuid");
-                            JSONObject idusuarioobj=bd.obteneridhbb(numero, servicio, 3);
-                            int idUsuario = idusuarioobj.getInt("idUsuario");
-                            JSONObject obj = entrar.getAccesoPermitidoPIN(uuid, idUsuario);
-                            if (obj.getBoolean("success")) {
-                                respuesta=entrar.insertarInformacionHBB(json.getString("numero"), json.getString("nombre"), servicio, json.getInt("permiso"), json.getString("pass"), foto, 3);
-                                respuesta.put("email", idusuarioobj.getString("email"));
-                                out.println(respuesta);
+                    } else if (operacion.equals("pinv2")) {
+                        if (json.has("numero") && json.has("email") && json.has("servicio")) {
+                            String servicio = json.getString("servicio");
+                            if (numero.length() == 10 && servicio.length() == 10) {
+                                if (entrar.existeServicio(servicio, 3)) {
+                                    respuesta.put("success", false);
+                                    respuesta.put("code", 1);
+                                    out.println(respuesta);
+                                } else {
+                                    JSONObject resultado = entrar.generarPINHBBRestringido(servicio, numero, json.getString("email"), 3, "registro");
+                                    if (resultado.getBoolean("success")) {
+                                        out.println(respuesta.put("success", true));
+                                    } else {
+                                        respuesta = resultado;
+                                        respuesta.put("code", 1);
+                                        out.println(respuesta);
+                                    }
+                                }
                             } else {
-                                out.println(obj);
+                                respuesta.put("success", false);
+                                respuesta.put("mensaje", "El número celular o el número de servicio no son validos.");
+                                out.println(respuesta);
                             }
                         } else {
                             respuesta.put("success", false);
-                            respuesta.put("mensaje", "Lo sentimos, la solicitud no esta permitida.");
-                            out.print(respuesta);
+                            respuesta.put("mensaje", "La petición debe contener numero, email y servicio.");
+                            out.println(respuesta);
                         }
-                    } else {
-                        respuesta.put("success", false);
-                        respuesta.put("mensaje", "Lo sentimos, la solicitud no esta permitida.");
-                        out.print(respuesta);
-                    }
-                } else if (operacion.equals("recuperacion")) {
-                    if (entrar.existeServicio(json.getString("servicio"), 3)) {
-                        JSONObject resultado = entrar.generarPINHBB(json.getString("servicio"), json.getString("numero"), "", 3, "recuperacion");
-                        out.println(resultado);
-                    } else {
-                        respuesta.put("success", false);
-                        respuesta.put("code", 0);
-                        respuesta.put("mensaje", "El número de servicio no se ha registrado.");
-                        out.print(respuesta);
-                    }
-                } else if (operacion.equals("recuperacionv2")) {
-                    if (json.has("servicio")) {
-                        String servicio = json.getString("servicio");
-                        if (servicio.length() == 10) {
-                            if (entrar.existeServicio(servicio, 3)) {
-                                JSONObject resultado = entrar.generarPINHBBRestringido(servicio, numero, "", 3, "recuperacion");
-                                out.println(resultado);
+                    } else if (operacion.equals("validar_pin")) {
+                        if (json.has("numero") && json.has("pin")) {
+                            if (numero.length() == 10 && json.getString("pin").length() == 4) {
+                                int idUsuario = entrar.getIdUsuarioServicio(numero, 3);
+                               // System.out.println("idusuario -> " + idUsuario);
+                                JSONObject obj = entrar.getValidacionPin(idUsuario, json.getString("pin"));
+                                respuesta = obj;
+                                out.println(respuesta);
                             } else {
                                 respuesta.put("success", false);
-                                respuesta.put("code", 0);
-                                respuesta.put("mensaje", "El número de servicio no se ha registrado.");
+                                respuesta.put("mensaje", "Longitudes no validas");
+                                out.println(respuesta);
+                            }
+                        } else {
+                            respuesta.put("success", false);
+                            respuesta.put("mensaje", "Lo sentimos, su petición no cumple con los requerimientos.");
+                            out.println(respuesta);
+                        }
+                    } else if (operacion.equals("login")) {
+                        if (json.has("servicio") && json.has("pass")) {
+                            out.print(entrar.loginHBB(json.getString("servicio"), json.getString("pass"), 3));
+                        } else {
+                            respuesta.put("success", false);
+                            respuesta.put("mensaje", "La petición debe contener servicio y pass.");
+                            out.println(respuesta);
+                        }
+                    } else if (operacion.equals("registro_datos")) {
+                        if (json.has("numero") && json.has("servicio") && json.has("pass") && json.has("permiso") && json.has("foto") && json.has("nombre")) {
+                            out.println(entrar.insertarInformacionHBB(json.getString("numero"), json.getString("nombre"), json.getString("servicio"), json.getInt("permiso"), json.getString("pass"), json.getString("foto"), 3));
+                        } else {
+                            respuesta.put("success", false);
+                            respuesta.put("mensaje", "Debe de enviar los siguientes datos: numero, servicio, nombre, pass, foto (base64) y permiso.");
+                            out.print(respuesta);
+                        }
+                    } else if (operacion.equals("registro_datosv2")) {
+                        if (json.has("numero") && json.has("servicio") && json.has("pass") && json.has("permiso") && json.has("foto") && json.has("nombre")) {
+                            String servicio = json.getString("servicio");
+                            String foto = json.getString("foto");
+                            if (json.has("uuid")) {
+                                String uuid = json.getString("uuid");
+                                JSONObject idusuarioobj=bd.obteneridhbb(numero, servicio, 3);
+                                int idUsuario = idusuarioobj.getInt("idUsuario");
+                                JSONObject obj = entrar.getAccesoPermitidoPIN(uuid, idUsuario);
+                                if (obj.getBoolean("success")) {
+                                    respuesta=entrar.insertarInformacionHBB(json.getString("numero"), json.getString("nombre"), servicio, json.getInt("permiso"), json.getString("pass"), foto, 3);
+                                    respuesta.put("email", idusuarioobj.getString("email"));
+                                    out.println(respuesta);
+                                } else {
+                                    out.println(obj);
+                                }
+                            } else {
+                                respuesta.put("success", false);
+                                respuesta.put("mensaje", "Lo sentimos, la solicitud no esta permitida.");
                                 out.print(respuesta);
                             }
                         } else {
@@ -198,106 +170,134 @@ public class accesoMifi extends HttpServlet {
                             respuesta.put("mensaje", "Lo sentimos, la solicitud no esta permitida.");
                             out.print(respuesta);
                         }
-                    } else {
-                        respuesta.put("success", false);
-                        respuesta.put("mensaje", "Lo sentimos, la solicitud no esta permitida.");
-                        out.print(respuesta);
-                    }
-
-                } else if (operacion.equals("restablecer_pass")) {
-                    if (json.has("servicio") && json.has("pass")) {
-                        out.println(entrar.actualizarPassHBBv2(json.getString("servicio"), json.getString("pass"), 3));
-                    } else {
-                        respuesta.put("success", false);
-                        respuesta.put("mensaje", "Debe de enviar los siguientes datos: servicio y pass.");
-                        out.print(respuesta);
-                    }
-                } else if (operacion.equals("restablecer_passv2")) {
-                   // System.out.println("BugBounty " + line2);
-                    if (json.has("servicio") && json.has("pass") && json.has("uuid")) {
-                        String uuid = json.getString("uuid");
-                        String servicio = json.getString("servicio");
-                        if (servicio.length() == 10) {
-                            JSONObject idusuarioobj=bd.obteneridhbb(numero, servicio, 3);
-                            int idUsuario = idusuarioobj.getInt("idUsuario");
-                            JSONObject obj = entrar.getAccesoPermitidoPIN(uuid, idUsuario);
-                            if (obj.getBoolean("success")) {
-                                respuesta = entrar.actualizarPassHBBv2(json.getString("servicio"), json.getString("pass"), 3);
+                    } else if (operacion.equals("recuperacion")) {
+                        if (entrar.existeServicio(json.getString("servicio"), 3)) {
+                            JSONObject resultado = entrar.generarPINHBB(json.getString("servicio"), json.getString("numero"), "", 3, "recuperacion");
+                            out.println(resultado);
+                        } else {
+                            respuesta.put("success", false);
+                            respuesta.put("code", 0);
+                            respuesta.put("mensaje", "El número de servicio no se ha registrado.");
+                            out.print(respuesta);
+                        }
+                    } else if (operacion.equals("recuperacionv2")) {
+                        if (json.has("servicio")) {
+                            String servicio = json.getString("servicio");
+                            if (servicio.length() == 10) {
+                                if (entrar.existeServicio(servicio, 3)) {
+                                    JSONObject resultado = entrar.generarPINHBBRestringido(servicio, numero, "", 3, "recuperacion");
+                                    out.println(resultado);
+                                } else {
+                                    respuesta.put("success", false);
+                                    respuesta.put("code", 0);
+                                    respuesta.put("mensaje", "El número de servicio no se ha registrado.");
+                                    out.print(respuesta);
+                                }
                             } else {
-                                respuesta = obj;
+                                respuesta.put("success", false);
+                                respuesta.put("mensaje", "Lo sentimos, la solicitud no esta permitida.");
+                                out.print(respuesta);
                             }
-                            out.println(respuesta);
                         } else {
                             respuesta.put("success", false);
                             respuesta.put("mensaje", "Lo sentimos, la solicitud no esta permitida.");
                             out.print(respuesta);
                         }
 
-                    } else {
-                        respuesta.put("success", false);
-                        respuesta.put("mensaje", "Lo sentimos, la solicitud no esta permitida.");
-                        out.print(respuesta);
-                    }
-                } else if (operacion.equals("actualizacion")) {
-                    if (json.has("access")) {
-                        int idUsuario = entrar.validarAcceso(json.getString("access"));
-                        if (idUsuario > 0) {
-                            if (json.has("nombre")) {
-                                out.println(entrar.actualizarTopHBB(json.getString("numero"), json.getString("nombre"), json.getString("email"), json.getInt("permiso"), json.getString("foto"), null, null, idUsuario, 1, 3));
-                            } else {
-
-                                if (json.has("actual_pass") && json.has("nueva_pass") && (json.getString("actual_pass") != json.getString("nueva_pass"))) {
-                                    JSONObject respuestajson = entrar.getNumero(idUsuario);
-                                    String msisdn;
-                                    if (respuestajson.getInt("tipo") == 2 || respuestajson.getInt("tipo") == 3) {
-                                        msisdn = respuestajson.getString("servicio");
-                                    } else {
-                                        msisdn = respuestajson.getString("numero");
-                                    }
-                                    JSONObject validarpass = entrar.adminpass(msisdn, json.getString("nueva_pass"), 3);
-                                    if (validarpass.getBoolean("success")) {
-                                        out.println(entrar.actualizarTopHBB(json.getString("numenumro"), null, null, 0, null, json.getString("actual_pass"), json.getString("nueva_pass"), idUsuario, 2, 3));
-
-                                    } else {
-                                        out.println(validarpass);
-                                    }
-
+                    } else if (operacion.equals("restablecer_pass")) {
+                        if (json.has("servicio") && json.has("pass")) {
+                            out.println(entrar.actualizarPassHBBv2(json.getString("servicio"), json.getString("pass"), 3));
+                        } else {
+                            respuesta.put("success", false);
+                            respuesta.put("mensaje", "Debe de enviar los siguientes datos: servicio y pass.");
+                            out.print(respuesta);
+                        }
+                    } else if (operacion.equals("restablecer_passv2")) {
+                       // System.out.println("BugBounty " + line2);
+                        if (json.has("servicio") && json.has("pass") && json.has("uuid")) {
+                            String uuid = json.getString("uuid");
+                            String servicio = json.getString("servicio");
+                            if (servicio.length() == 10) {
+                                JSONObject idusuarioobj=bd.obteneridhbb(numero, servicio, 3);
+                                int idUsuario = idusuarioobj.getInt("idUsuario");
+                                JSONObject obj = entrar.getAccesoPermitidoPIN(uuid, idUsuario);
+                                if (obj.getBoolean("success")) {
+                                    respuesta = entrar.actualizarPassHBBv2(json.getString("servicio"), json.getString("pass"), 3);
                                 } else {
-                                    respuesta.put("success", false);
-                                    respuesta.put("mensaje", "Las propiedades actual_pass y nueva_pass no son correctos.");
-                                    out.println(respuesta);
+                                    respuesta = obj;
                                 }
+                                out.println(respuesta);
+                            } else {
+                                respuesta.put("success", false);
+                                respuesta.put("mensaje", "Lo sentimos, la solicitud no esta permitida.");
+                                out.print(respuesta);
+                            }
+
+                        } else {
+                            respuesta.put("success", false);
+                            respuesta.put("mensaje", "Lo sentimos, la solicitud no esta permitida.");
+                            out.print(respuesta);
+                        }
+                    } else if (operacion.equals("actualizacion")) {
+                        if (json.has("access")) {
+                            int idUsuario = entrar.validarAcceso(json.getString("access"));
+                            if (idUsuario > 0) {
+                                if (json.has("nombre")) {
+                                    out.println(entrar.actualizarTopHBB(json.getString("numero"), json.getString("nombre"), json.getString("email"), json.getInt("permiso"), json.getString("foto"), null, null, idUsuario, 1, 3));
+                                } else {
+
+                                    if (json.has("actual_pass") && json.has("nueva_pass") && (json.getString("actual_pass") != json.getString("nueva_pass"))) {
+                                        JSONObject respuestajson = entrar.getNumero(idUsuario);
+                                        String msisdn;
+                                        if (respuestajson.getInt("tipo") == 2 || respuestajson.getInt("tipo") == 3) {
+                                            msisdn = respuestajson.getString("servicio");
+                                        } else {
+                                            msisdn = respuestajson.getString("numero");
+                                        }
+                                        JSONObject validarpass = entrar.adminpass(msisdn, json.getString("nueva_pass"), 3);
+                                        if (validarpass.getBoolean("success")) {
+                                            out.println(entrar.actualizarTopHBB(json.getString("numenumro"), null, null, 0, null, json.getString("actual_pass"), json.getString("nueva_pass"), idUsuario, 2, 3));
+
+                                        } else {
+                                            out.println(validarpass);
+                                        }
+
+                                    } else {
+                                        respuesta.put("success", false);
+                                        respuesta.put("mensaje", "Las propiedades actual_pass y nueva_pass no son correctos.");
+                                        out.println(respuesta);
+                                    }
+                                }
+                            } else {
+                                respuesta.put("success", false);
+                                out.println(respuesta);
                             }
                         } else {
                             respuesta.put("success", false);
+                            respuesta.put("mensaje", "Es necesario enviar la propiedad access en ésta operación.");
                             out.println(respuesta);
                         }
-                    } else {
-                        respuesta.put("success", false);
-                        respuesta.put("mensaje", "Es necesario enviar la propiedad access en ésta operación.");
-                        out.println(respuesta);
-                    }
-                } else if (operacion.equals("logout")) {
-                    if (json.has("access")) {
-                        int idUsuario = entrar.validarAcceso(json.getString("access"));
-                        if (idUsuario > 0) {
-                            respuesta.put("success", entrar.eliminarAcceso(idUsuario, json.getString("access")));
-                            out.println(respuesta);
+                    } else if (operacion.equals("logout")) {
+                        if (json.has("access")) {
+                            int idUsuario = entrar.validarAcceso(json.getString("access"));
+                            if (idUsuario > 0) {
+                                respuesta.put("success", entrar.eliminarAcceso(idUsuario, json.getString("access")));
+                                out.println(respuesta);
+                            } else {
+                                respuesta.put("success", false);
+                                out.println(respuesta);
+                            }
                         } else {
                             respuesta.put("success", false);
+                            respuesta.put("mensaje", "Es necesario enviar la propiedad access en ésta operación.");
                             out.println(respuesta);
                         }
                     } else {
                         respuesta.put("success", false);
-                        respuesta.put("mensaje", "Es necesario enviar la propiedad access en ésta operación.");
+                        respuesta.put("mensaje", "La operación ingresada no es reconocida.");
                         out.println(respuesta);
                     }
-                } else {
-                    respuesta.put("success", false);
-                    respuesta.put("mensaje", "La operación ingresada no es reconocida.");
-                    out.println(respuesta);
-                }
-
+                
             } else {
                 respuesta.put("success", false);
                 out.println(respuesta);

@@ -24,8 +24,8 @@ public class conexionnir {
    
     String host = "jdbc:mysql://10.11.10.64:3306/";
    // String host = "jdbc:mysql://10.11.10.103:3306/";
-    String base = "cambioNir";
-    String usuario = "root";
+    String base = "cambioNir?useSSL=false";
+    String usuario = "cambioNir";
 
     private static final String UNICODE_FORMAT = "UTF8";
     public static final String DESEDE_ENCRYPTION_SCHEME = "DESede";
@@ -52,7 +52,7 @@ public class conexionnir {
 
     public String encrypt() throws InvalidKeyException, UnsupportedEncodingException, IllegalBlockSizeException, BadPaddingException {
         String encryptedString = null;
-        psd = "fT@Sa424gfdc";
+        psd = "4mFFVYmQ!nFjs?4=M>utjTmJ9PK=Tb>h";
         //psd="k755Cit>Jah+";
         cipher.init(Cipher.ENCRYPT_MODE, key);
         byte[] plainText = psd.getBytes(UNICODE_FORMAT);
