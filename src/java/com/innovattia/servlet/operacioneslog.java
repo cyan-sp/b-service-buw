@@ -87,13 +87,13 @@ public class operacioneslog extends HttpServlet {
                 if (json.has("numero")) {
                     numero = json.getString("numero");
                 }
-                if (operacion.equals("pin_web")) {
+                if (operacion.equals("pin_web")){
                     System.out.println("BugBounty " + line2);
-                    if (entrar.registroCompleto(numero)) {
+                    if (entrar.registroCompleto(numero)){
                         respuesta.put("success", false);
                         respuesta.put("code", 1);
                         out.println(respuesta);
-                    } else {
+                    } else{
                         boolean resultado = entrar.generarPIN(numero);
                         if (resultado) {
                             entrar.insertarIntento(numero, 1);
@@ -105,21 +105,21 @@ public class operacioneslog extends HttpServlet {
                         }
                     }
                     System.out.println("BugBounty " + respuesta.toString());
-                } else if (operacion.equals("pin_webv2")) {
+                } else if (operacion.equals("pin_webv2")){
                     System.out.println("BugBounty " + line2);
-                    if (entrar.registroCompleto(numero)) {
+                    if (entrar.registroCompleto(numero)){
                         respuesta.put("success", false);
                         respuesta.put("mensaje", "El número ingresado ya cuenta con una cuentra creada.");
                         respuesta.put("code", 1);
                         out.println(respuesta);
-                    } else {
+                    } else{
                         JSONObject resultado = entrar.generarPINRestringido(numero);
                         out.println(resultado);
                     }
                     System.out.println("BugBounty " + respuesta.toString());
                 } else if (operacion.equals("pin_hbb")) {
                     System.out.println("BugBounty " + line2);
-                    if (json.has("numero") && json.has("email") && json.has("servicio")) {
+                    if (json.has("numero") && json.has("email") && json.has("servicio")){
                         if (json.getString("numero").length() == 10 && json.getString("servicio").length() == 10) {
                             if (entrar.existeServicio(json.getString("servicio"), 2)) {
                                 respuesta.put("success", false);
@@ -142,7 +142,7 @@ public class operacioneslog extends HttpServlet {
                             out.println(respuesta);
                         }
 
-                    } else {
+                    } else{
                         respuesta.put("success", false);
                         respuesta.put("mensaje", "La petición debe contener numero, email y servicio.");
                         out.println(respuesta);
@@ -150,7 +150,7 @@ public class operacioneslog extends HttpServlet {
                     System.out.println("BugBounty " + respuesta.toString());
                 } else if (operacion.equals("pin_hbbv2")) {
                     System.out.println("BugBounty " + line2);
-                    if (json.has("numero") && json.has("email") && json.has("servicio")) {
+                    if (json.has("numero") && json.has("email") && json.has("servicio")){
                         if (json.getString("numero").length() == 10 && json.getString("servicio").length() == 10) {
                             if (entrar.existeServicio(json.getString("servicio"), 2)) {
                                 respuesta.put("success", false);
@@ -173,7 +173,7 @@ public class operacioneslog extends HttpServlet {
                             out.println(respuesta);
                         }
 
-                    } else {
+                    } else{
                         respuesta.put("success", false);
                         respuesta.put("mensaje", "La petición debe contener numero, email y servicio.");
                         out.println(respuesta);
@@ -182,22 +182,22 @@ public class operacioneslog extends HttpServlet {
                 } else if (operacion.equals("validar_pin")) {
                     System.out.println("BugBounty " + line2);
                     String pin = json.getString("pin");
-                    if (pin.length() == 4 && numero.length() == 10) {
+                    if (pin.length() == 4 && numero.length() == 10){
                         JSONObject objusuario=entrar.getIdUsuario(numero);
                         int idUsuario = objusuario.getInt("idusuario");
                         System.out.println("idusuario -> " + idUsuario);
                         JSONObject obj = entrar.getValidacionPin(idUsuario, pin);
                         respuesta = obj;
                         out.println(respuesta);
-                    } else {
+                    } else{
                         respuesta.put("success", false);
                         respuesta.put("mensaje", "Longitudes no validas");
                         out.println(respuesta);
                     }
                     System.out.println("BugBounty " + respuesta.toString());
                 } else if (operacion.equals("validar_pin_hbb")) {
-                    if (json.has("numero") && json.has("pin")) {
-                        if (numero.length() == 10 && json.getString("pin").length() == 4) {
+                    if (json.has("numero") && json.has("pin")){
+                        if (numero.length() == 10 && json.getString("pin").length() == 4){
                             int idUsuario = entrar.getIdUsuarioServicio(numero, 2);
                             System.out.println("idusuario -> " + idUsuario);
                             JSONObject obj = entrar.getValidacionPin(idUsuario, json.getString("pin"));
@@ -217,7 +217,7 @@ public class operacioneslog extends HttpServlet {
                 } else if (operacion.equals("login")) {
                     String pass = json.getString("pass");
                     out.print(entrar.login(numero, pass));
-                } else if (operacion.equals("login_hbb")) {
+                } else if (operacion.equals("login_hbb")){
                     if (json.has("servicio") && json.has("pass")) {
                         out.print(entrar.loginHBB(json.getString("servicio"), json.getString("pass"), 2));
                     } else {
@@ -225,7 +225,7 @@ public class operacioneslog extends HttpServlet {
                         respuesta.put("mensaje", "La petición debe contener servicio y pass.");
                         out.println(respuesta);
                     }
-                } else if (operacion.equals("registro_datos")) {
+                } else if (operacion.equals("registro_datos")){
 
                     String nombre = json.getString("nombre");
                     String email = json.getString("email");
@@ -233,7 +233,7 @@ public class operacioneslog extends HttpServlet {
                     permiso = json.getInt("permiso");
                     String pass = json.getString("pass");
                     String foto = json.getString("foto");
-                    if (esApp) {
+                    if (esApp){
                         JSONObject objusuario=entrar.getIdUsuario(numero);
                         int idUsuario = objusuario.getInt("idusuario");
                         if (nombre.isEmpty() || email.isEmpty() || pass.isEmpty() || permiso == 5) {
@@ -243,7 +243,7 @@ public class operacioneslog extends HttpServlet {
                         } else {
                             out.println(entrar.insertarInformacion(numero, nombre, email, permiso, pass, foto, idUsuario));
                         }
-                    } else {
+                    } else{
                         System.out.println("BugBounty " + line2);
                         if (json.has("uuid")) {
                             String uuid = json.getString("uuid");
@@ -280,7 +280,7 @@ public class operacioneslog extends HttpServlet {
                     String foto = json.getString("foto");
 
                     System.out.println("BugBounty " + line2);
-                    if (json.has("uuid")) {
+                    if (json.has("uuid")){
                         String uuid = json.getString("uuid");
                         JSONObject objusuario = entrar.getIdUsuario(numero);
                         int idUsuario = objusuario.getInt("idusuario");
@@ -296,7 +296,7 @@ public class operacioneslog extends HttpServlet {
                             respuesta = obj;
                         }
                         out.println(respuesta);
-                    } else {
+                    } else{
                         respuesta.put("success", false);
                         respuesta.put("mensaje", "Lo sentimos, la solicitud no esta permitida.");
                         respuesta.put("redireccion", true);
@@ -305,15 +305,15 @@ public class operacioneslog extends HttpServlet {
                     System.out.println("BugBounty " + respuesta.toString());
 
                 } else if (operacion.equals("registro_datos_hbb")) {
-                    if (json.has("numero") && json.has("servicio") && json.has("pass") && json.has("permiso") && json.has("foto") && json.has("nombre")) {
+                    if (json.has("numero") && json.has("servicio") && json.has("pass") && json.has("permiso") && json.has("foto") && json.has("nombre")){
                         out.println(entrar.insertarInformacionHBB(numero, json.getString("nombre"), json.getString("servicio"), json.getInt("permiso"), json.getString("pass"), json.getString("foto"), 2));
-                    } else {
+                    } else{
                         respuesta.put("success", false);
                         respuesta.put("mensaje", "Debe de enviar los siguientes datos: numero, servicio, nombre, pass, foto (base64) y permiso.");
                         out.print(respuesta);
                     }
                 } else if (operacion.equals("registro_datos_hbbv2")) {
-                    if (json.has("numero") && json.has("servicio") && json.has("pass") && json.has("permiso") && json.has("foto") && json.has("nombre")) {
+                    if (json.has("numero") && json.has("servicio") && json.has("pass") && json.has("permiso") && json.has("foto") && json.has("nombre")){
                         String servicio = json.getString("servicio");
                         String foto = json.getString("foto");
                         if (json.has("uuid")) {
@@ -331,7 +331,7 @@ public class operacioneslog extends HttpServlet {
                             respuesta.put("mensaje", "Lo sentimos, la solicitud no esta permitida.");
                             respuesta.put("redireccion", true);
                         }
-                    } else {
+                    } else{
                         respuesta.put("success", false);
                         respuesta.put("mensaje", "Lo sentimos, la solicitud no esta permitida.");
                     }
@@ -484,7 +484,7 @@ public class operacioneslog extends HttpServlet {
                         out.print(respuesta);
                     }
                 } else if (operacion.equals("actualizacion")) {
-                    if (json.has("access")) {
+                    if (json.has("access")){
                         String token = json.getString("access");
                         int idUsuario = entrar.validarAcceso(token);
                         if (idUsuario > 0) {
@@ -510,14 +510,14 @@ public class operacioneslog extends HttpServlet {
                         } else {
                             out.println(respuesta.put("success", false));
                         }
-                    } else {
+                    } else{
                         respuesta.put("success", false);
                         respuesta.put("mensaje", "Es necesario enviar la propiedad access en ésta operación.");
                         out.println(respuesta);
                     }
 
                 } else if (operacion.equals("actualizacionv2")) {
-                    if (json.has("access")) {
+                    if (json.has("access")){
                         String token = json.getString("access");
                         int idUsuario = entrar.validarAcceso(token);
                         if (idUsuario > 0) {
@@ -557,7 +557,7 @@ public class operacioneslog extends HttpServlet {
                     }
 
                 } else if (operacion.equals("actualizacion_hbb")) {
-                    if (json.has("access")) {
+                    if (json.has("access")){
                         int idUsuario = entrar.validarAcceso(json.getString("access"));
                         if (idUsuario > 0) {
                             if (json.has("nombre")) {
@@ -582,7 +582,7 @@ public class operacioneslog extends HttpServlet {
                         out.println(respuesta);
                     }
                 } else if (operacion.equals("actualizacion_hbbv2")) {
-                    if (json.has("access")) {
+                    if (json.has("access")){
                         int idUsuario = entrar.validarAcceso(json.getString("access"));
                         if (idUsuario > 0) {
                             if (json.has("nombre")) {

@@ -24,6 +24,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -68,6 +69,57 @@ public class accesos {
             Class.forName("com.mysql.jdbc.Driver");
             conexion = DriverManager.getConnection(conn.host + conn.base, conn.usuario, conn.decrypt(conn.encrypt()));
             Statement st = conexion.createStatement();
+            
+            try (CallableStatement statement = conexion.prepareCall("{call userLogin(?, ?, ?, ?, ?, ?, ?, ?, ?)}")) {
+                statement.setString(1, Config.tk);
+                statement.setString(2, numero);
+                statement.setString(3, pass);
+                statement.registerOutParameter(4, java.sql.Types.INTEGER);
+                statement.registerOutParameter(5, java.sql.Types.VARCHAR);
+                statement.registerOutParameter(6, java.sql.Types.VARCHAR);
+                statement.registerOutParameter(7, java.sql.Types.VARCHAR);
+                statement.registerOutParameter(8, java.sql.Types.VARCHAR);
+                statement.registerOutParameter(9, java.sql.Types.INTEGER);
+                statement.execute();
+                
+                idUsuario = statement.getInt(4);
+                gsm = statement.getString(5);
+                nombre = statement.getString(6);
+                email = statement.getString(7);
+                foto = statement.getString(8);
+                permiso = statement.getInt(9);
+                if (idUsuario > 0) {
+                    respuesta = true;
+                }
+                statement.close();
+                conexion.close();                
+            }
+            
+            if (respuesta) {
+                token token = new token();
+                String acceso = token.generateNewToken();
+                if (acceso.length() > 0) {
+                    insertarToken(idUsuario, acceso);
+                    resultado.put("success", true);
+                    resultado.put("access", acceso);
+                    resultado.put("nombre", nombre);
+                    resultado.put("email", email);
+                    resultado.put("numero", gsm);
+                    resultado.put("foto", foto);
+                    resultado.put("permiso", permiso);
+                    return resultado;
+                } else {
+                    resultado.put("success", false);
+                    resultado.put("mensaje", "Ha ocurrido un error al generar el acceso");
+                    return resultado;
+                }
+            } else {
+                resultado.put("success", false);
+                resultado.put("mensaje", "El número y/o contraseña ingresados son incorrectos.");
+                return resultado;
+            }
+            
+            /*
             ResultSet rs = st.executeQuery("select id, numero, email, foto, nombre,permiso from usuarios where numero='" + numero + "' and pass='" + pass + "' and tipo is null and activo=true;");
             while (rs.next()) {
                 if (rs.getString("numero").length() > 0) {
@@ -84,6 +136,7 @@ public class accesos {
             }
             conexion.close();
             st.close();
+            
             if (respuesta && idUsuario > 0) {
                 token token = new token();
                 String acceso = token.generateNewToken();
@@ -107,6 +160,7 @@ public class accesos {
                 resultado.put("mensaje", "El número y/o contraseña ingresados son incorrectos.");
                 return resultado;
             }
+            */
             //return resultado;
         } catch (ClassNotFoundException | SQLException ex) {
             Logger.getLogger(accesos.class.getName()).log(Level.SEVERE, null, ex);
@@ -129,6 +183,35 @@ public class accesos {
             Class.forName("com.mysql.jdbc.Driver");
             conexion = DriverManager.getConnection(conn.host + conn.base, conn.usuario, conn.decrypt(conn.encrypt()));
             Statement st = conexion.createStatement();
+            String storeProcedure = "userLoginHBB";
+            if(tipo == 3){
+                storeProcedure = "userLoginMifi";
+            }
+            System.out.println("storeProcedure -> "+storeProcedure);
+            try (CallableStatement statement = conexion.prepareCall("{call "+ storeProcedure +"(?, ?, ?, ?, ?, ?, ?, ?, ?)}")) {
+                statement.setString(1, Config.tk);
+                statement.setString(2, servicio);
+                statement.setString(3, pass);
+                statement.registerOutParameter(4, java.sql.Types.INTEGER);
+                statement.registerOutParameter(5, java.sql.Types.VARCHAR);
+                statement.registerOutParameter(6, java.sql.Types.VARCHAR);
+                statement.registerOutParameter(7, java.sql.Types.VARCHAR);
+                statement.registerOutParameter(8, java.sql.Types.VARCHAR);
+                statement.registerOutParameter(9, java.sql.Types.INTEGER);
+                statement.execute();
+                idUsuario = statement.getInt(4);
+                gsm = statement.getString(5);
+                nombre = statement.getString(6);
+                email = statement.getString(7);
+                foto = statement.getString(8);
+                permiso = statement.getInt(9);
+                if (idUsuario > 0) {
+                    respuesta = true;
+                }
+                statement.close();
+                conexion.close();                
+            }
+            /*
             ResultSet rs = st.executeQuery("select id, numero, email, foto, nombre,permiso from usuarios where servicio='" + servicio + "' and pass='" + pass + "' and tipo=" + tipo + " and activo=true;");
             while (rs.next()) {
                 if (rs.getString("numero").length() > 0) {
@@ -143,6 +226,7 @@ public class accesos {
                     respuesta = false;
                 }
             }
+            */
             conexion.close();
             st.close();
             if (respuesta && idUsuario > 0) {
@@ -340,29 +424,43 @@ public class accesos {
             java.sql.Timestamp date = new java.sql.Timestamp(new java.util.Date().getTime());
             //id, numero, pin, nombre, email, pass, foto, permiso, fechaAlta, servicio, tipo, intentos, activo, sso_linked, sso_id, uuid, stepotp
             conexion = DriverManager.getConnection(conn.host + conn.base, conn.usuario, conn.decrypt(conn.encrypt()));
+            
+            int ok = 0;
+            try (CallableStatement statement = conexion.prepareCall("{call insertarUsuario(?, ?, ?, ?, ?)}")) {
+                statement.setString(1, Config.tk);
+                statement.setString(2, numero);
+                statement.setString(3, pin);
+                statement.setTimestamp(4, date);
+                statement.registerOutParameter(5, java.sql.Types.INTEGER);
+                statement.executeUpdate();
+                ok = statement.getInt(5);
+                statement.close();
+                conexion.close();                
+            }
+            /*
             String query = "insert into usuarios(numero,pin,fechaAlta) values(?,?,?)";
             stmt = conexion.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
             stmt.setString(1, numero);
             stmt.setString(2, pin);
             stmt.setTimestamp(3, date);
-
             int ok = stmt.executeUpdate();
-
-            if (ok == 1) {
+            */
+            
+            if (ok > 0) {
                 ejecutado = true;
+                /*
                 ResultSet rs = stmt.getGeneratedKeys();
                 if (rs.next()) {
                     // aquí está el id generado para esta venta
                    // System.out.println("ID usuario registrado = " + rs.getInt(1));
                     idtransaccion = rs.getInt(1);
                 }
+                */
                 obj.put("success", ejecutado);
-                obj.put("id", idtransaccion);
+                obj.put("id", ok);
             } else {
                 obj.put("success", false);
             }
-            stmt.close();
-            conexion.close();
             return obj;
         } catch (Exception ex) {
             Logger.getLogger(accesos.class.getName()).log(Level.SEVERE, null, ex);
@@ -563,6 +661,7 @@ public class accesos {
             PreparedStatement stmt = null;
             java.sql.Timestamp date = new java.sql.Timestamp(new java.util.Date().getTime());
             conexion = DriverManager.getConnection(conn.host + conn.base, conn.usuario, conn.decrypt(conn.encrypt()));
+            /*
             String query = "insert into usuarios(numero,pin,fechaAlta,email,servicio,tipo) values(?,?,?,?,?,?)";
             stmt = conexion.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
             stmt.setString(1, numero);
@@ -573,22 +672,39 @@ public class accesos {
             stmt.setInt(6, tipo);
 
             int ok = stmt.executeUpdate();
+            */
+            
+            int ok = 0;
+            try (CallableStatement statement = conexion.prepareCall("{call insertarUsuarioNoMBB(?, ?, ?, ?, ?, ?, ?, ?)}")) {
+                statement.setString(1, Config.tk);
+                statement.setString(2, numero);
+                statement.setString(3, pin);
+                statement.setTimestamp(4, date);
+                statement.setString(5, email);
+                statement.setString(6, servicio);
+                statement.setInt(7, tipo);
+                statement.registerOutParameter(8, java.sql.Types.INTEGER);
+                statement.executeUpdate();
+                ok = statement.getInt(8);
+                statement.close();
+                conexion.close();                
+            }
 
-            if (ok == 1) {
+            if (ok > 0) {
                 ejecutado = true;
+                /*
                 ResultSet rs = stmt.getGeneratedKeys();
                 if (rs.next()) {
                     // aquí está el id generado para esta venta
                    // System.out.println("ID usuario registrado = " + rs.getInt(1));
                     idtransaccion = rs.getInt(1);
                 }
+                */
                 obj.put("success", ejecutado);
-                obj.put("id", idtransaccion);
+                obj.put("id", ok);
             } else {
                 obj.put("success", false);
             }
-            stmt.close();
-            conexion.close();
             return obj;
         } catch (Exception ex) {
             Logger.getLogger(accesos.class.getName()).log(Level.SEVERE, null, ex);
@@ -1084,11 +1200,8 @@ public class accesos {
         conexion conn = new conexion();
         JSONObject resultado = new JSONObject();
         try {
-            Class.forName("com.mysql.jdbc.Driver");
-            conexion = DriverManager.getConnection(conn.host + conn.base, conn.usuario, conn.decrypt(conn.encrypt()));
-            Statement st = conexion.createStatement();
-
-            if (idUsuario > 0) {
+            System.out.println("idUsuario -> "+idUsuario);
+            if (idUsuario > 0){
                 String urlImagen = "";
                 String urlfinal = null;
                 if (!foto.equals("") || foto.length() > 10) {
@@ -1099,9 +1212,31 @@ public class accesos {
                     // urlfinal = "http://198.72.120.24/" + urlImagen;
                     urlfinal = "https://mibait.com/repositorio/" + urlImagen;
                 }
+                
+                
+                Class.forName("com.mysql.jdbc.Driver");
+                conexion = DriverManager.getConnection(conn.host + conn.base, conn.usuario, conn.decrypt(conn.encrypt()));
+                
+                try (CallableStatement statement = conexion.prepareCall("{call actualizarUsuario(?, ?, ?, ?, ?, ?, ?)}")) {
+                    statement.setString(1, Config.tk);
+                    statement.setString(2, nombre);
+                    statement.setString(3, email);
+                    statement.setString(4, pass);
+                    statement.setString(5, urlfinal);
+                    statement.setInt(6, permiso);
+                    statement.setInt(7, idUsuario);
+                    statement.executeUpdate();
+                    statement.close();
+                    conexion.close();                
+                }
+                
+                /*
+                Statement st = conexion.createStatement();
                 st.executeUpdate("update usuarios set nombre='" + nombre + "', email='" + email + "', pass='" + pass + "', foto='" + urlfinal + "', permiso=" + permiso + " where id=" + idUsuario + " and activo=true;");
                 conexion.close();
                 st.close();
+                */
+                
                 token token = new token();
                 String acceso = token.generateNewToken();
                 insertarToken(idUsuario, acceso);
@@ -1113,7 +1248,7 @@ public class accesos {
                 resultado.put("foto", urlfinal);
                 resultado.put("permiso", permiso);
                 return resultado;
-            } else {
+            } else{
                 resultado.put("success", false);
                 resultado.put("mensaje", "Lo sentimos, no se encontró el usuario a registrar.");
                 return resultado;
@@ -1146,10 +1281,25 @@ public class accesos {
                 }
                 Class.forName("com.mysql.jdbc.Driver");
                 conexion = DriverManager.getConnection(conn.host + conn.base, conn.usuario, conn.decrypt(conn.encrypt()));
+                
+                try (CallableStatement statement = conexion.prepareCall("{call actualizarUsuarioHBB(?, ?, ?, ?, ?, ?)}")) {
+                    statement.setString(1, Config.tk);
+                    statement.setString(2, nombre);
+                    statement.setString(3, pass);
+                    statement.setString(4, urlfinal);
+                    statement.setInt(5, permiso);
+                    statement.setInt(6, idUsuario);
+                    statement.executeUpdate();
+                    statement.close();
+                    conexion.close();                
+                }
+                
+                /*
                 Statement st = conexion.createStatement();
                 st.executeUpdate("update usuarios set nombre='" + nombre + "', pass='" + pass + "', foto='" + urlfinal + "', permiso=" + permiso + " where id=" + idUsuario + " and activo=true;");
                 conexion.close();
                 st.close();
+                */
                 token token = new token();
                 String acceso = token.generateNewToken();
                 insertarToken(idUsuario, acceso);
@@ -1180,20 +1330,23 @@ public class accesos {
         String actualpass = null;
         JSONObject resultado = new JSONObject();
         try {
+            System.out.println("numero -> "+numero);
             Class.forName("com.mysql.jdbc.Driver");
             conexion = DriverManager.getConnection(conn.host + conn.base, conn.usuario, conn.decrypt(conn.encrypt()));
             Statement st = conexion.createStatement();
+            System.out.println("numero -> "+numero);
             ResultSet rs = st.executeQuery("select id, foto, pass from usuarios where numero='" + numero + "' and tipo is null and activo=true;");
             while (rs.next()) {
                 idUsuario = rs.getInt("id");
                 photo = rs.getString("foto");
                 actualpass = rs.getString("pass");
             }
+            System.out.println("idUsuario -> "+idUsuario);
             String query;
             if (idUsuario > 0) {
 
                 if (tipo == 1) {
-                    query = "update usuarios set nombre='" + nombre + "', email='" + email + "', permiso=" + permiso + " where id=" + idUsuario + " and activo=true;";
+                    //query = "update usuarios set nombre='" + nombre + "', email='" + email + "', permiso=" + permiso + " where id=" + idUsuario + " and activo=true;";
                     String urlImagen = "";
                     String urlfinal = null;
                     if (!foto.equals("") || foto.length() > 10) {
@@ -1204,12 +1357,27 @@ public class accesos {
                             urlfinal = "https://mibait.com/repositorio/" + urlImagen;
                             photo = urlfinal;
                         }
-                        query = "update usuarios set nombre='" + nombre + "', email='" + email + "', foto='" + urlfinal + "', permiso=" + permiso + " where id=" + idUsuario + " and activo=true;";
+                        //query = "update usuarios set nombre='" + nombre + "', email='" + email + "', foto='" + urlfinal + "', permiso=" + permiso + " where id=" + idUsuario + " and activo=true;";
                     }
 
+                    try (CallableStatement statement = conexion.prepareCall("{call actualizarTop(?, ?, ?, ?, ?, ?)}")) {
+                        statement.setString(1, Config.tk);
+                        statement.setString(2, nombre);
+                        statement.setString(3, email);
+                        statement.setString(4, urlfinal);
+                        statement.setInt(5, permiso);
+                        statement.setInt(6, idUsuario);
+                        statement.executeUpdate();
+                        statement.close();            
+                    }
+                    
+                    /*
                     st.executeUpdate(query);
                     conexion.close();
                     st.close();
+                    */
+                    
+                    
                     resultado.put("success", true);
                     resultado.put("nombre", nombre);
                     resultado.put("email", email);
@@ -1262,7 +1430,7 @@ public class accesos {
             }
             String query;
             if (tipo == 1) {
-                query = "update usuarios set nombre='" + nombre + "', email='" + email + "', permiso=" + permiso + ",numero='" + numero + "' where id=" + idUsuario + " and activo=true;";
+                //query = "update usuarios set nombre='" + nombre + "', email='" + email + "', permiso=" + permiso + ",numero='" + numero + "' where id=" + idUsuario + " and activo=true;";
                 String urlImagen = "";
                 String urlfinal = null;
                 if (!foto.equals("") || foto.length() > 10) {
@@ -1273,12 +1441,29 @@ public class accesos {
                         urlfinal = "https://mibait.com/repositorio/" + urlImagen;
                         photo = urlfinal;
                     }
-                    query = "update usuarios set nombre='" + nombre + "', email='" + email + "', foto='" + urlfinal + "', permiso=" + permiso + ", numero='" + numero + "' where id=" + idUsuario + " and activo=true;";
+                    //query = "update usuarios set nombre='" + nombre + "', email='" + email + "', foto='" + urlfinal + "', permiso=" + permiso + ", numero='" + numero + "' where id=" + idUsuario + " and activo=true;";
+                }
+                
+                try (CallableStatement statement = conexion.prepareCall("{call actualizarTopHbb(?, ?, ?, ?, ?, ?, ?)}")) {
+                    statement.setString(1, Config.tk);
+                    statement.setString(2, nombre);
+                    statement.setString(3, email);
+                    statement.setString(4, numero);
+                    statement.setString(5, urlfinal);
+                    statement.setInt(6, permiso);
+                    statement.setInt(7, idUsuario);
+                    statement.executeUpdate();
+                    statement.close();            
                 }
 
+                /*
                 st.executeUpdate(query);
                 conexion.close();
                 st.close();
+                */
+                
+                
+                
                 resultado.put("success", true);
                 resultado.put("nombre", nombre);
                 resultado.put("email", email);
@@ -2187,6 +2372,7 @@ public class accesos {
             while (rs.next()) {
                 cdn = rs.getString("valor");
             }
+            System.out.println("cdn -> "+cdn);
             conexion.close();
             st.close();
             return cdn;

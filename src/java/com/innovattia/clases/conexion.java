@@ -22,11 +22,14 @@ import org.apache.commons.codec.binary.Base64;
  */
 public class conexion {
 
-    String host = "jdbc:mysql://10.11.10.103:3306/";
-  // String host = "jdbc:mysql://10.11.10.103:3306/";
+    //String host = "jdbc:mysql://10.11.10.103:3306/";
+    //String base = "appBait?useSSL=false";
+    //String usuario = "appBait2";
+    
+    String host = "jdbc:mysql://10.11.10.64:3306/";
     String base = "appBait?useSSL=false";
-    String usuario = "generic";
-
+    String usuario = "root";
+    
     private static final String UNICODE_FORMAT = "UTF8";
     public static final String DESEDE_ENCRYPTION_SCHEME = "DESede";
     private KeySpec ks;
@@ -52,9 +55,8 @@ public class conexion {
 
     public String encrypt() throws InvalidKeyException, UnsupportedEncodingException, IllegalBlockSizeException, BadPaddingException {
         String encryptedString = null;
-       //psd = "fT@Sa424gfdc";
-        //psd="k755Cit>Jah+";
-        psd="5Dumd9xbQgUh9dUgRVRUwkdqzd!*TujL";
+        //psd = "PCIsTPuOTv6t9zD";
+        psd="fT@Sa424gfdc";
         cipher.init(Cipher.ENCRYPT_MODE, key);
         byte[] plainText = psd.getBytes(UNICODE_FORMAT);
         byte[] encryptedText = cipher.doFinal(plainText);

@@ -5,7 +5,6 @@
  */
 package com.innovattia.servlet;
 
-import com.innovattia.clases.Config;
 import com.innovattia.clases.accesos;
 import java.io.BufferedReader;
 import java.io.IOException;
