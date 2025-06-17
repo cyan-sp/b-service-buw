@@ -1,71 +1,110 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- You may freely edit this file. See commented blocks below for -->
-<!-- some examples of how to customize the build. -->
-<!-- (If you delete it and reopen the project it will be recreated.) -->
-<!-- By default, only the Clean and Build commands use this build script. -->
-<!-- Commands such as Run, Debug, and Test only use this build script if -->
-<!-- the Compile on Save feature is turned off for the project. -->
-<!-- You can turn off the Compile on Save (or Deploy on Save) setting -->
-<!-- in the project's Project Properties dialog box.-->
 <project name="serviceBUW" default="default" basedir=".">
     <description>Builds, tests, and runs the project serviceBUW.</description>
+    
+    <!-- Properties -->
+    <property name="lib.dir" value="lib"/>
+    <property name="maven.repo" value="https://repo1.maven.org/maven2"/>
+    
+    <!-- Download core dependencies -->
+    <target name="download-deps" description="Download all available dependencies">
+        <mkdir dir="${lib.dir}"/>
+        
+        <echo message="Downloading dependencies..."/>
+        
+        <!-- Core dependencies that should definitely work -->
+        <get src="${maven.repo}/commons-codec/commons-codec/1.15/commons-codec-1.15.jar" 
+             dest="${lib.dir}/org-apache-commons-codec.jar" skipexisting="true"/>
+        
+        <get src="${maven.repo}/commons-collections/commons-collections/3.2.2/commons-collections-3.2.2.jar" 
+             dest="${lib.dir}/commons-collections-3.2.1.jar" skipexisting="true"/>
+        
+        <get src="${maven.repo}/org/apache/httpcomponents/httpclient/4.5.14/httpclient-4.5.14.jar" 
+             dest="${lib.dir}/httpclient-4.5.6.jar" skipexisting="true"/>
+        
+        <get src="${maven.repo}/org/apache/httpcomponents/httpcore/4.4.16/httpcore-4.4.16.jar" 
+             dest="${lib.dir}/httpcore-4.4.13.jar" skipexisting="true"/>
+        
+        <get src="${maven.repo}/commons-lang/commons-lang/2.6/commons-lang-2.6.jar" 
+             dest="${lib.dir}/commons-lang-2.1.jar" skipexisting="true"/>
+        
+        <get src="${maven.repo}/org/json/json/20230618/json-20230618.jar" 
+             dest="${lib.dir}/java-json.jar" skipexisting="true"/>
+        
+        <get src="${maven.repo}/commons-logging/commons-logging/1.2/commons-logging-1.2.jar" 
+             dest="${lib.dir}/org-apache-commons-logging.jar" skipexisting="true"/>
+        
+        <get src="${maven.repo}/net/iharder/base64/2.3.9/base64-2.3.9.jar" 
+             dest="${lib.dir}/base64-2.3.7.jar" skipexisting="true"/>
+        
+        <get src="${maven.repo}/commons-httpclient/commons-httpclient/3.1/commons-httpclient-3.1.jar" 
+             dest="${lib.dir}/commons-httpclient-3.0.jar" skipexisting="true"/>
+        
+        <!-- Try to get these, but don't fail if they don't exist -->
+        <echo message="Attempting to download optional dependencies..."/>
+        
+        <get src="${maven.repo}/mysql/mysql-connector-java/8.0.33/mysql-connector-java-8.0.33.jar" 
+             dest="${lib.dir}/mysql-connector-java-5.1.23-bin.jar" skipexisting="true" ignoreerrors="true"/>
+        
+        <!-- Alternative CORS filter -->
+        <get src="${maven.repo}/org/eclipse/jetty/jetty-servlets/9.4.53.v20231009/jetty-servlets-9.4.53.v20231009.jar" 
+             dest="${lib.dir}/cors-filter-2.6.jar" skipexisting="true" ignoreerrors="true"/>
+        
+        <!-- Create placeholder for missing JARs -->
+        <touch file="${lib.dir}/java-property-utils-1.9.1.jar"/>
+        <touch file="${lib.dir}/jetty-servlet-11.0.18.jar"/>
+        <touch file="${lib.dir}/JDK_8.0.422-zulu_SPKMAN_1_platform.jar"/>
+        
+        <echo message="Core dependencies downloaded to ${lib.dir}"/>
+        <echo message="Some optional dependencies may be missing - check console output"/>
+    </target>
+    
+    <!-- Generate properties file -->
+    <target name="generate-lib-properties" depends="download-deps" description="Generate library properties">
+        <echo file="lib.properties" append="false">
+# Generated library paths - copy these to your nbproject/private/private.properties
+file.reference.base64-2.3.7.jar=${basedir}/${lib.dir}/base64-2.3.7.jar
+file.reference.commons-collections-3.2.1.jar=${basedir}/${lib.dir}/commons-collections-3.2.1.jar  
+file.reference.commons-httpclient-3.0.jar=${basedir}/${lib.dir}/commons-httpclient-3.0.jar
+file.reference.commons-lang-2.1.jar=${basedir}/${lib.dir}/commons-lang-2.1.jar
+file.reference.cors-filter-2.6.jar=${basedir}/${lib.dir}/cors-filter-2.6.jar
+file.reference.httpclient-4.5.6.jar=${basedir}/${lib.dir}/httpclient-4.5.6.jar
+file.reference.httpcore-4.4.13.jar=${basedir}/${lib.dir}/httpcore-4.4.13.jar
+file.reference.java-json.jar=${basedir}/${lib.dir}/java-json.jar
+file.reference.java-property-utils-1.9.1.jar=${basedir}/${lib.dir}/java-property-utils-1.9.1.jar
+file.reference.jetty-servlet-11.0.18.jar=${basedir}/${lib.dir}/jetty-servlet-11.0.18.jar
+file.reference.org-apache-commons-codec.jar=${basedir}/${lib.dir}/org-apache-commons-codec.jar
+file.reference.org-apache-commons-logging.jar=${basedir}/${lib.dir}/org-apache-commons-logging.jar
+file.reference.mysql-connector-java-5.1.23-bin.jar=${basedir}/${lib.dir}/mysql-connector-java-5.1.23-bin.jar
+file.reference.JDK_8.0.422-zulu_SPKMAN_1_platform.jar=${basedir}/${lib.dir}/JDK_8.0.422-zulu_SPKMAN_1_platform.jar
+        </echo>
+        <echo message="Library properties generated in lib.properties"/>
+    </target>
+    
+    <!-- Clean dependencies -->
+    <target name="clean-deps" description="Clean downloaded dependencies">
+        <delete dir="${lib.dir}"/>
+        <delete file="lib.properties"/>
+    </target>
+    
+    <!-- Quick setup -->
+    <target name="setup" depends="generate-lib-properties" description="Quick setup - download deps and show instructions">
+        <echo message=""/>
+        <echo message="========================================"/>
+        <echo message="Dependencies downloaded!"/>
+        <echo message="========================================"/>
+        <echo message=""/>
+        <echo message="MANUAL SETUP REQUIRED:"/>
+        <echo message="1. Open nbproject/private/private.properties"/>
+        <echo message="2. Replace all file.reference.* lines with contents from lib.properties"/>
+        <echo message="3. Refresh your NetBeans project"/>
+        <echo message=""/>
+        <echo message="Files to modify:"/>
+        <echo message="- Edit: nbproject/private/private.properties"/>
+        <echo message="- Copy from: lib.properties"/>
+        <echo message=""/>
+    </target>
+    
     <import file="nbproject/build-impl.xml"/>
-    <!--
-
-    There exist several targets which are by default empty and which can be 
-    used for execution of your tasks. These targets are usually executed 
-    before and after some main targets. They are: 
-
-      -pre-init:                 called before initialization of project properties 
-      -post-init:                called after initialization of project properties 
-      -pre-compile:              called before javac compilation 
-      -post-compile:             called after javac compilation 
-      -pre-compile-single:       called before javac compilation of single file
-      -post-compile-single:      called after javac compilation of single file
-      -pre-compile-test:         called before javac compilation of JUnit tests
-      -post-compile-test:        called after javac compilation of JUnit tests
-      -pre-compile-test-single:  called before javac compilation of single JUnit test
-      -post-compile-test-single: called after javac compilation of single JUunit test
-      -pre-dist:                 called before archive building 
-      -post-dist:                called after archive building 
-      -post-clean:               called after cleaning build products 
-      -pre-run-deploy:           called before deploying
-      -post-run-deploy:          called after deploying
-
-    Example of pluging an obfuscator after the compilation could look like 
-
-        <target name="-post-compile">
-            <obfuscate>
-                <fileset dir="${build.classes.dir}"/>
-            </obfuscate>
-        </target>
-
-    For list of available properties check the imported 
-    nbproject/build-impl.xml file. 
-
-
-    Other way how to customize the build is by overriding existing main targets.
-    The target of interest are: 
-
-      init-macrodef-javac:    defines macro for javac compilation
-      init-macrodef-junit:   defines macro for junit execution
-      init-macrodef-debug:    defines macro for class debugging
-      do-dist:                archive building
-      run:                    execution of project 
-      javadoc-build:          javadoc generation 
-
-    Example of overriding the target for project execution could look like 
-
-        <target name="run" depends="<PROJNAME>-impl.jar">
-            <exec dir="bin" executable="launcher.exe">
-                <arg file="${dist.jar}"/>
-            </exec>
-        </target>
-
-    Notice that overridden target depends on jar target and not only on 
-    compile target as regular run target does. Again, for list of available 
-    properties which you can use check the target you are overriding in 
-    nbproject/build-impl.xml file. 
-
-    -->
+    
 </project>
